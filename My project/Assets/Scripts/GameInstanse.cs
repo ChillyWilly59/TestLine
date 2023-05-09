@@ -1,9 +1,7 @@
+using System;
 using System.Collections.Generic;
 using SM.State;
-using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
-using UnityEngine.TextCore.Text;
 using IState = SM.IState;
 
 public class GameInstanse : MonoBehaviour 
@@ -19,6 +17,7 @@ public class GameInstanse : MonoBehaviour
     private static object _character;
     private ICharacterController _characterController;
     private List<List<Vector3>> _savedLines = new List<List<Vector3>>();
+    private Func<bool> _condition;
     //private OtherObject _otherObject;
 
     private void Awake()
@@ -26,6 +25,7 @@ public class GameInstanse : MonoBehaviour
         _stateMachine = new StateMachine(lineRenderer);
         IState drawing = new DrawingState(_stateMachine, lineRenderer, _points, SaveLine, IsOtherDrawingComplete);
         IState waiting = new WaitingState(_stateMachine);
+        IState waitingForLine = new WaitingForLineState(_stateMachine, () => !HasDrawnLine(characters[1]), characters, _points, waiting);
         IState moving = new MovingState(_stateMachine,characters,_points);
         IState changePlayer = new ChangePlayerState(_stateMachine,characters,colors,lineRenderer,targetCollider,_characterController);
         //IState victori = new VictoriState(_stateMachine);
@@ -33,10 +33,13 @@ public class GameInstanse : MonoBehaviour
 
         _stateMachine.AddTransition(waiting, drawing, () => Input.GetMouseButtonDown(0))
             .AddTransition(drawing, waiting, () => Input.GetMouseButtonUp(0))
-            .AddTransition(waiting,moving,() => _points.Count == characters.Length )
-            .AddTransition(waiting,changePlayer,()=> Input.GetKeyDown(KeyCode.Tab))
-            .AddTransition(changePlayer,drawing,()=> Input.GetKeyUp(KeyCode.Tab))
-            .AddTransition(waiting, moving, AreAllCharactersDrawnLines);
+            .AddTransition(waiting, moving, () => _points.Count == characters.Length)
+            .AddTransition(waiting, changePlayer, () => Input.GetKeyDown(KeyCode.Tab))
+            .AddTransition(changePlayer, drawing, () => Input.GetKeyUp(KeyCode.Tab))
+            .AddTransition(waiting, moving, AreAllCharactersDrawnLines)
+            .AddTransition(waiting, waitingForLine, () => !HasDrawnLine(characters[1])); 
+
+        _stateMachine.AddTransition(waitingForLine, waiting, () => HasDrawnLine(characters[1]));
         
         _stateMachine.SetState(waiting);
         _stateMachine.SetActive(true);

@@ -85,9 +85,5 @@ public class StateMachine
     {
         _isActive = value;
     }
-
-    public void AddAnyTransition(IState waiting, bool condition)
-    {
-        throw new NotImplementedException();
-    }
+    
 }
