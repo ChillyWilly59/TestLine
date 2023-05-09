@@ -1,10 +1,16 @@
-﻿using System;
+using System;
 
-public class Transition {
-    public Transition(IState to, Func<bool> condition)
+namespace SM
+{
+    public class Transition : ITransition
     {
-        throw new NotImplementedException();
-    }
+        public Func<bool> Condition { get; }
+        public IState To { get; }
 
-    public object Condition { get; set; }
+        public Transition(IState to, Func<bool> condition)
+        {
+            To = to;
+            Condition = condition;
+        }
+    }
 }

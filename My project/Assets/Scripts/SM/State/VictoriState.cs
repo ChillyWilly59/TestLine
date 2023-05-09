@@ -1,6 +1,7 @@
 ﻿using SM;
 
-internal class VictoriState : IState {
+internal class VictoriState : IState 
+{
     private IState _stateImplementation;
 
     public VictoriState(StateMachine stateMachine)
